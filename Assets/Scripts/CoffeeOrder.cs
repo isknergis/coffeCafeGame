@@ -1,9 +1,7 @@
-using UnityEngine;
-
-public class CoffeeOrder : MonoBehaviour
+[System.Serializable]
+public class CoffeeOrder
 {
-
     public string coffeeType;
-    public int sugarLevel; // 0 sade, 1 orta, 2 çok
-    public string aroma; // null olabilir
+    public int sugarLevel;
+    public string aroma;
 }

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class OrderManager : MonoBehaviour
@@ -8,47 +8,40 @@ public class OrderManager : MonoBehaviour
     public List<string> unlockedAromas;
 
     public int playerLevel = 1;
+
     public CoffeeOrder currentOrder;
 
     public Text orderText;
 
-    public CoffeeOrder GenerateOrder()
+    public void GenerateOrder()
     {
-        CoffeeOrder order = new CoffeeOrder();
+        currentOrder = new CoffeeOrder();
 
-        order.coffeeType = coffeeTypes[
-            Random.Range(0, coffeeTypes.Count)
-        ];
+        currentOrder.coffeeType = coffeeTypes[Random.Range(0, coffeeTypes.Count)];
+        currentOrder.sugarLevel = Random.Range(0, 3);
 
-        order.sugarLevel = (playerLevel < 3)
-            ? Random.Range(0, 2)
-            : Random.Range(0, 3);
-
-        if (unlockedAromas.Count > 0 && Random.value > 0.5f)
-            order.aroma = unlockedAromas[
-                Random.Range(0, unlockedAromas.Count)
-            ];
+        if (unlockedAromas.Count > 0)
+            currentOrder.aroma = unlockedAromas[Random.Range(0, unlockedAromas.Count)];
         else
-            order.aroma = null;
+            currentOrder.aroma = null;
 
-        currentOrder = order;
+        UpdateUI();
 
-        string sugarText = "Sade";
-        if (order.sugarLevel == 1) sugarText = "Orta";
-        if (order.sugarLevel == 2) sugarText = "Çok";
+        Debug.Log("Sipariþ: " + currentOrder.coffeeType +
+                  " | Þeker: " + currentOrder.sugarLevel +
+                  " | Aroma: " + currentOrder.aroma);
+    }
 
-        if (orderText != null)
-        {
-            orderText.text =
-                order.coffeeType +
-                "\nÞeker: " + sugarText +
-                "\nAroma: " + (order.aroma ?? "Yok");
-        }
+    void UpdateUI()
+    {
+        if (orderText == null) return;
 
-        Debug.Log("Sipariþ: " + order.coffeeType +
-                  " | Þeker: " + sugarText +
-                  " | Aroma: " + order.aroma);
+        string sugarText = currentOrder.sugarLevel == 0 ? "Sade" :
+                           currentOrder.sugarLevel == 1 ? "Orta" : "Çok";
 
-        return order;
+        orderText.text =
+            currentOrder.coffeeType + "\n" +
+            "Þeker: " + sugarText + "\n" +
+            "Aroma: " + (currentOrder.aroma ?? "Yok");
     }
 }

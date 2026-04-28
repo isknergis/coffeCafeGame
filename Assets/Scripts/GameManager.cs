@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public PlayerSelection player;
     public AromaSelection aroma;
     public UnlockSystem unlockSystem;
+    public CoffeeMachine machine;
 
     public List<AromaButton> aromaButtons;
 
@@ -19,11 +20,14 @@ public class GameManager : MonoBehaviour
         unlockSystem.unlockedAromas.Add("Vanilya");
         unlockSystem.unlockedAromas.Add("Kakao");
 
-        unlockSystem.ApplyUnlocks();
-
         orderManager.unlockedAromas = unlockSystem.unlockedAromas;
 
-        NewOrder();
+        orderManager.GenerateOrder();
+    }
+
+    public bool CanSelect()
+    {
+        return !machine.IsBrewing();
     }
 
     public void OnServeButton()
@@ -34,9 +38,7 @@ public class GameManager : MonoBehaviour
         {
             money += 10;
             orderManager.playerLevel++;
-
             unlockSystem.CheckUnlock(orderManager.playerLevel);
-
             Debug.Log("DOÐRU");
         }
         else
@@ -47,18 +49,12 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Para: " + money);
 
-        ResetSelections();
-
-        NewOrder();
-    }
-
-    void NewOrder()
-    {
-        orderManager.unlockedAromas = unlockSystem.unlockedAromas;
+        ResetAll();
         orderManager.GenerateOrder();
+        machine.ResetMachine();
     }
 
-    void ResetSelections()
+    void ResetAll()
     {
         player.ResetSelection();
         aroma.ResetAromas();
@@ -86,6 +82,12 @@ public class GameManager : MonoBehaviour
         {
             if (aroma.selectedAromas.Count > 0)
                 return false;
+        }
+
+        if (!machine.IsCoffeeReady())
+        {
+            Debug.Log("Kahve hazýr deðil!");
+            return false;
         }
 
         return true;
