@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
         unlockSystem.unlockedAromas.Add("Kakao");
 
         orderManager.unlockedAromas = unlockSystem.unlockedAromas;
+
+        ResetSelections(); // ?? EKLENDÝ (ilk açýlýþta temiz baþla)
         orderManager.GenerateOrder();
 
         serveButton.interactable = false;
@@ -72,7 +74,6 @@ public class GameManager : MonoBehaviour
 
             Debug.Log("DOÐRU +" + earned);
 
-            // ?? level kontrol (çok hýzlý artmasýn)
             if (money > 100) orderManager.playerLevel = 2;
             if (money > 300) orderManager.playerLevel = 3;
         }
@@ -84,7 +85,7 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Para: " + money);
 
-        ResetAll();
+        ResetSelections(); // ?? BURAYI DEÐÝÞTÝRDÝK
         orderManager.GenerateOrder();
         machine.ResetMachine();
 
@@ -92,7 +93,7 @@ public class GameManager : MonoBehaviour
     }
 
     // ---------------- RESET ----------------
-    void ResetAll()
+    public void ResetSelections() // ?? ARTIK PUBLIC
     {
         player.ResetSelection();
         aroma.ResetAromas();
@@ -112,10 +113,13 @@ public class GameManager : MonoBehaviour
         if (order.sugarLevel != player.sugarLevel)
             return false;
 
-        if (order.aroma != null)
+        if (order.aromas != null && order.aromas.Count > 0)
         {
-            if (!aroma.selectedAromas.Contains(order.aroma))
-                return false;
+            foreach (var a in order.aromas)
+            {
+                if (!aroma.selectedAromas.Contains(a))
+                    return false;
+            }
         }
         else
         {
@@ -138,7 +142,7 @@ public class GameManager : MonoBehaviour
         money -= 10;
         Debug.Log("Sipariþ kaçtý! -10");
 
-        ResetAll();
+        ResetSelections(); // ?? ZATEN DOÐRUYDU
 
         if (machine != null)
             machine.ResetMachine();
@@ -169,21 +173,22 @@ public class GameManager : MonoBehaviour
         return 0;
     }
 
-    // ?? TÜM KAZANÇ HESABI (DOÐRU HAL)
+    // ---------------- EARNINGS ----------------
     int CalculateEarnings(string coffeeName)
     {
         int total = GetCoffeePrice(coffeeName);
 
-        // aroma ekle
-        if (orderManager.currentOrder.aroma != null)
+        if (orderManager.currentOrder.aromas != null)
         {
-            int aromaPrice = GetAromaPrice(orderManager.currentOrder.aroma);
-            total += aromaPrice;
+            foreach (var a in orderManager.currentOrder.aromas)
+            {
+                int aromaPrice = GetAromaPrice(a);
+                total += aromaPrice;
 
-            Debug.Log("Aroma fiyatý: " + aromaPrice);
+                Debug.Log("Aroma fiyatý: " + a + " = " + aromaPrice);
+            }
         }
 
-        // dengeli multiplier
         float multiplier = 1f + (orderManager.playerLevel * 0.05f);
 
         return Mathf.RoundToInt(total * multiplier);

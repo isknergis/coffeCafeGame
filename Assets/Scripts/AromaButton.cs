@@ -4,26 +4,47 @@ using UnityEngine.UI;
 public class AromaButton : MonoBehaviour
 {
     public string aromaName;
-    public Image image;
 
-    public Color normalColor;
-    public Color selectedColor;
+    public Image buttonImage;
+    public Color normalColor = Color.white;
+    public Color selectedColor = Color.green;
 
-    public AromaSelection aromaSelection;
+    AromaSelection aromaSelection;
+    GameManager gameManager;
 
     bool isSelected = false;
 
+    void Start()
+    {
+        aromaSelection = FindFirstObjectByType<AromaSelection>();
+        gameManager = FindFirstObjectByType<GameManager>();
+
+        ResetButton();
+    }
+
     public void OnClick()
     {
-        aromaSelection.ToggleAroma(aromaName);
+        if (gameManager != null && !gameManager.CanSelect())
+            return;
 
         isSelected = !isSelected;
-        image.color = isSelected ? selectedColor : normalColor;
+
+        aromaSelection.ToggleAroma(aromaName);
+
+        UpdateVisual();
+    }
+
+    void UpdateVisual()
+    {
+        if (buttonImage != null)
+            buttonImage.color = isSelected ? selectedColor : normalColor;
     }
 
     public void ResetButton()
     {
         isSelected = false;
-        image.color = normalColor;
+
+        if (buttonImage != null)
+            buttonImage.color = normalColor;
     }
 }

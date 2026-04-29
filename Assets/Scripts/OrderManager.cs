@@ -52,13 +52,28 @@ public class OrderManager : MonoBehaviour
     {
         currentOrder = new CoffeeOrder();
 
+        // kahve + þeker
         currentOrder.coffeeType = coffeeTypes[Random.Range(0, coffeeTypes.Count)];
         currentOrder.sugarLevel = Random.Range(0, 3);
 
+        // ?? MULTI AROMA (LEVEL YOK)
+        currentOrder.aromas = new List<string>();
+
         if (unlockedAromas != null && unlockedAromas.Count > 0)
-            currentOrder.aroma = unlockedAromas[Random.Range(0, unlockedAromas.Count)];
-        else
-            currentOrder.aroma = null;
+        {
+            // maksimum kaç aroma gelebilir (sabit)
+            int maxAroma = Mathf.Min(2, unlockedAromas.Count);
+
+            int aromaCount = Random.Range(0, maxAroma + 1);
+
+            for (int i = 0; i < aromaCount; i++)
+            {
+                string a = unlockedAromas[Random.Range(0, unlockedAromas.Count)];
+
+                if (!currentOrder.aromas.Contains(a))
+                    currentOrder.aromas.Add(a);
+            }
+        }
 
         currentTime = patience;
 
@@ -66,9 +81,8 @@ public class OrderManager : MonoBehaviour
 
         Debug.Log("Sipariþ: " + currentOrder.coffeeType +
                   " | Þeker: " + currentOrder.sugarLevel +
-                  " | Aroma: " + currentOrder.aroma);
+                  " | Aromalar: " + string.Join(",", currentOrder.aromas));
     }
-
     void UpdateUI()
     {
         if (orderText == null) return;
@@ -76,9 +90,16 @@ public class OrderManager : MonoBehaviour
         string sugarText = currentOrder.sugarLevel == 0 ? "Sade" :
                            currentOrder.sugarLevel == 1 ? "Orta" : "Çok";
 
+        string aromaText = "Yok";
+
+        if (currentOrder.aromas != null && currentOrder.aromas.Count > 0)
+        {
+            aromaText = string.Join(", ", currentOrder.aromas);
+        }
+
         orderText.text =
             currentOrder.coffeeType + "\n" +
             "Þeker: " + sugarText + "\n" +
-            "Aroma: " + (currentOrder.aroma ?? "Yok");
+            "Aroma: " + aromaText;
     }
 }
