@@ -15,6 +15,7 @@ public class CoffeeMachine : MonoBehaviour
 
     GameObject currentCup;
     Vector3 originalPos;
+    public System.Action OnCoffeeReady;
 
     void Start()
     {
@@ -49,6 +50,11 @@ public class CoffeeMachine : MonoBehaviour
             transform.localPosition = originalPos + Random.insideUnitSphere * shake;
 
             yield return null;
+
+            coffeeReady = true;
+
+            if (OnCoffeeReady != null)
+                OnCoffeeReady.Invoke();
         }
 
         transform.localPosition = originalPos;
