@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     public Button serveButton;
     public Text moneyText;
+    public Button gunuBitirButton; // Inspector'dan butonu buraya sürükle
 
     [Header("Buttons")]
     public List<AromaButton> aromaButtons;
@@ -41,13 +43,19 @@ public class GameManager : MonoBehaviour
 
         orderManager.unlockedAromas = unlockSystem.unlockedAromas;
 
-        ResetSelections(); // ?? EKLENDÝ (ilk açýlýþta temiz baþla)
+        ResetSelections();
         orderManager.GenerateOrder();
 
         serveButton.interactable = false;
         machine.OnCoffeeReady += EnableServeButton;
 
         UpdateMoneyUI();
+
+        // --- Hatalý Kýsým Düzeltildi ---
+        if (gunuBitirButton != null)
+        {
+            gunuBitirButton.onClick.AddListener(GunuBitir);
+        }
     }
 
     void EnableServeButton()
@@ -72,6 +80,10 @@ public class GameManager : MonoBehaviour
             int earned = CalculateEarnings(orderManager.currentOrder.coffeeType);
             money += earned;
 
+            // Verileri Sahne Arasýna Kaydet
+            GameData.GununKazanci += earned;
+            GameData.ToplamSiparis++;
+
             Debug.Log("DOÐRU +" + earned);
 
             if (money > 100) orderManager.playerLevel = 2;
@@ -80,20 +92,21 @@ public class GameManager : MonoBehaviour
         else
         {
             money -= 5;
+            GameData.IptalEdilenSiparis++;
             Debug.Log("YANLIÞ");
         }
 
-        Debug.Log("Para: " + money);
-
-        ResetSelections(); // ?? BURAYI DEÐÝÞTÝRDÝK
+        ResetSelections();
         orderManager.GenerateOrder();
         machine.ResetMachine();
 
         UpdateMoneyUI();
+        unlockSystem.CheckUnlock(orderManager.playerLevel);
+        orderManager.unlockedAromas = unlockSystem.unlockedAromas;
     }
 
     // ---------------- RESET ----------------
-    public void ResetSelections() // ?? ARTIK PUBLIC
+    public void ResetSelections()
     {
         player.ResetSelection();
         aroma.ResetAromas();
@@ -140,9 +153,10 @@ public class GameManager : MonoBehaviour
     public void OnOrderFailed()
     {
         money -= 10;
+        GameData.IptalEdilenSiparis++;
         Debug.Log("Sipariþ kaçtý! -10");
 
-        ResetSelections(); // ?? ZATEN DOÐRUYDU
+        ResetSelections();
 
         if (machine != null)
             machine.ResetMachine();
@@ -158,7 +172,6 @@ public class GameManager : MonoBehaviour
             if (coffee.coffeeName == coffeeName)
                 return coffee.basePrice;
         }
-
         return 10;
     }
 
@@ -169,7 +182,6 @@ public class GameManager : MonoBehaviour
             if (a.aromaName == aromaName)
                 return a.price;
         }
-
         return 0;
     }
 
@@ -182,22 +194,24 @@ public class GameManager : MonoBehaviour
         {
             foreach (var a in orderManager.currentOrder.aromas)
             {
-                int aromaPrice = GetAromaPrice(a);
-                total += aromaPrice;
-
-                Debug.Log("Aroma fiyatý: " + a + " = " + aromaPrice);
+                total += GetAromaPrice(a);
             }
         }
 
         float multiplier = 1f + (orderManager.playerLevel * 0.05f);
-
         return Mathf.RoundToInt(total * multiplier);
     }
 
-    // ---------------- UI ----------------
     void UpdateMoneyUI()
     {
         if (moneyText != null)
             moneyText.text = "Para: " + money;
+    }
+
+    // ---------------- SCENE NAVIGATION ----------------
+    public void GunuBitir()
+    {
+        Debug.Log("Butona týklandý, sahne yükleniyor...");
+        SceneManager.LoadScene("FinishScene");
     }
 }

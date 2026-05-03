@@ -23,7 +23,9 @@ public class OrderManager : MonoBehaviour
 
     void Start()
     {
-        gameManager = FindFirstObjectByType<GameManager>(); // yeni yöntem
+        gameManager = FindFirstObjectByType<GameManager>();
+        // Ýlk sipariþi oluþturmayý unutmayalým
+        if (currentOrder == null) GenerateOrder();
     }
 
     void Update()
@@ -32,15 +34,15 @@ public class OrderManager : MonoBehaviour
 
         currentTime -= Time.deltaTime;
 
-        // bar güncelle
         if (patienceBar != null)
             patienceBar.fillAmount = currentTime / patience;
 
-        // süre bitince
         if (currentTime <= 0)
         {
             Debug.Log("Süre doldu!");
 
+            // GameManager'daki OnOrderFailed fonksiyonunu çaðýrarak 
+            // GameData.IptalEdilenSiparis deðerini artýrýyoruz.
             if (gameManager != null)
                 gameManager.OnOrderFailed();
 
@@ -52,18 +54,26 @@ public class OrderManager : MonoBehaviour
     {
         currentOrder = new CoffeeOrder();
 
-        // kahve + þeker
-        currentOrder.coffeeType = coffeeTypes[Random.Range(0, coffeeTypes.Count)];
+        // Her seferinde güncel kilitli ürün listesini GameManager'dan çek
+        if (gameManager != null && gameManager.unlockSystem != null)
+        {
+            unlockedAromas = gameManager.unlockSystem.unlockedAromas;
+        }
+
+        // Rastgele kahve ve þeker seviyesi belirle
+        if (coffeeTypes != null && coffeeTypes.Count > 0)
+        {
+            currentOrder.coffeeType = coffeeTypes[Random.Range(0, coffeeTypes.Count)];
+        }
+
         currentOrder.sugarLevel = Random.Range(0, 3);
 
-        // ?? MULTI AROMA (LEVEL YOK)
+        // Aroma belirleme mantýðý
         currentOrder.aromas = new List<string>();
 
         if (unlockedAromas != null && unlockedAromas.Count > 0)
         {
-            // maksimum kaç aroma gelebilir (sabit)
             int maxAroma = Mathf.Min(2, unlockedAromas.Count);
-
             int aromaCount = Random.Range(0, maxAroma + 1);
 
             for (int i = 0; i < aromaCount; i++)
@@ -76,13 +86,13 @@ public class OrderManager : MonoBehaviour
         }
 
         currentTime = patience;
-
         UpdateUI();
 
         Debug.Log("Sipariþ: " + currentOrder.coffeeType +
                   " | Þeker: " + currentOrder.sugarLevel +
                   " | Aromalar: " + string.Join(",", currentOrder.aromas));
     }
+
     void UpdateUI()
     {
         if (orderText == null) return;
@@ -102,4 +112,5 @@ public class OrderManager : MonoBehaviour
             "Þeker: " + sugarText + "\n" +
             "Aroma: " + aromaText;
     }
+
 }
